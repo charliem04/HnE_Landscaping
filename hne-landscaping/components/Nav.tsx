@@ -1,87 +1,123 @@
 "use client";
 
-import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { client } from "@/client.config";
-
-const links = [
-  { href: "#services", label: "Services" },
-  { href: "#about", label: "About" },
-  { href: "#booking", label: "Book online" },
-  { href: "#contact", label: "Estimate" },
-];
+import { ScrollProgress } from "./ScrollProgress";
 
 export function Nav() {
   const [open, setOpen] = useState(false);
+  const [stuck, setStuck] = useState(false);
+
+  // The bottom rule only appears once the page has moved — at rest the
+  // nav is part of the hero, not a bar sitting on top of it.
+  useEffect(() => {
+    const onScroll = () => setStuck(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    // Solid ground + hairline rule. No translucency, no blur.
-    <header className="sticky top-0 z-40 border-b border-line bg-surface">
-      <div className="mx-auto flex max-w-content items-center justify-between px-5 py-3 sm:px-8">
-        <a href="#top" className="flex items-center gap-2.5">
-          <Image
+    <header
+      className={`sticky top-0 z-[60] border-b bg-surface/90 backdrop-blur-[14px] backdrop-saturate-150
+                  transition-colors duration-300 ${stuck ? "border-line" : "border-transparent"}`}
+    >
+      <div className="wrap flex h-[74px] items-center gap-6">
+        <a href="#top" className="mr-auto flex items-center gap-2.5 no-underline">
+          <img
             src={client.logoPath}
-            alt={`${client.businessName} logo`} // TODO(client): confirm alt reads well with real logo
-            width={34}
-            height={34}
-            className="h-8 w-8"
+            alt={`${client.businessName} badge`}
+            width={360}
+            height={435}
+            className="h-[46px] w-auto"
           />
-          {/* deliberate-ignore flat-type-scale — a nav bar is legitimately narrow-range; the page-level scale runs 11px to 72px */}
-          <span className="font-display text-xl font-bold uppercase tracking-wide text-ink">
-            {client.businessName}
+          <span className="block">
+            {/* deliberate-ignore flat-type-scale — a nav bar is legitimately a
+                narrow range; the page scale runs 11px to 72px */}
+            <b className="block font-display text-[1.02rem] font-black uppercase leading-none tracking-[-0.01em] text-ink [font-stretch:116%]">
+              {client.businessName}
+            </b>
+            <span className="text-[0.7rem] font-semibold uppercase tracking-[0.09em] text-ink-faint">
+              {client.tagline}
+            </span>
           </span>
         </a>
 
-        <nav className="hidden items-center gap-7 md:flex" aria-label="Main">
-          {links.map((l) => (
+        <nav className="hidden gap-9 lg:flex" aria-label="Main">
+          {client.copy.navLinks.map((l) => (
             <a
               key={l.href}
               href={l.href}
-              className="text-sm font-medium text-ink-soft underline-offset-4 transition-colors hover:text-ink hover:underline active:text-ink-faint"
+              className="group relative py-1 font-display text-[0.95rem] font-bold text-ink no-underline active:text-brand"
             >
               {l.label}
+              {/* Badge green is graphic-only — a rule underneath, never the word itself. */}
+              <span
+                aria-hidden
+                className="absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 bg-leaf
+                           transition-transform duration-300 ease-brand-out
+                           group-hover:scale-x-100 group-focus-visible:scale-x-100"
+              />
             </a>
           ))}
-          {/* The dispatch line is the point of the site — mono, ink, unmissable */}
-          <a
-            href={`tel:${client.phoneHref}`}
-            className="btn-press rounded border border-ink px-4 py-2 font-mono text-sm font-semibold tabular-nums text-ink hover:bg-ink hover:text-surface active:bg-ink-soft"
-          >
-            {client.phone}
-          </a>
         </nav>
 
+        <a
+          href={`tel:${client.phoneHref}`}
+          className="btn hidden px-[18px] py-[11px] text-[0.94rem] sm:inline-flex"
+        >
+          {client.copy.callCta} {client.phone}
+        </a>
+
         <button
-          className="p-2 md:hidden"
+          type="button"
+          className="-mr-2 p-2 lg:hidden"
           aria-expanded={open}
+          aria-controls="nav-mobile"
           aria-label={open ? "Close menu" : "Open menu"}
           onClick={() => setOpen((v) => !v)}
         >
-          <svg viewBox="0 0 24 24" className="h-6 w-6 text-ink" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <svg
+            viewBox="0 0 24 24"
+            className="h-6 w-6 text-ink"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          >
             {open ? <path d="M6 6l12 12M18 6 6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
           </svg>
         </button>
       </div>
 
       {open && (
-        <nav className="border-t border-line bg-surface px-5 pb-4 pt-2 md:hidden" aria-label="Main mobile">
-          {links.map((l) => (
+        <nav
+          id="nav-mobile"
+          className="border-t border-line bg-surface lg:hidden"
+          aria-label="Main, mobile"
+        >
+          <div className="wrap py-4">
+            {client.copy.navLinks.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                onClick={() => setOpen(false)}
+                className="block border-b border-line py-3 font-display text-lg font-bold text-ink no-underline last:border-b-0 active:text-brand"
+              >
+                {l.label}
+              </a>
+            ))}
             <a
-              key={l.href}
-              href={l.href}
-              onClick={() => setOpen(false)}
-              className="block py-2.5 text-base font-medium text-ink"
+              href={`tel:${client.phoneHref}`}
+              className="btn mt-4 w-full justify-center sm:hidden"
             >
-              {l.label}
+              {client.copy.callCta} {client.phone}
             </a>
-          ))}
-          <a
-            href={`tel:${client.phoneHref}`}
-            className="btn-press mt-2 block rounded bg-brand px-4 py-2.5 text-center font-semibold text-white hover:bg-brand-strong active:bg-brand-strong"
-          >
-            Call {client.phone}
-          </a>
+          </div>
         </nav>
       )}
+
+      <ScrollProgress />
     </header>
   );
 }

@@ -2,36 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── BRAND TOKENS — edit these per client (see tailwind.config.ts) ──
-   Values are space-separated RGB channels so Tailwind opacity works.
-
-   Default skin is derived from the trades world: warm paper ground
-   (estimate-pad bias), near-black warm ink, work-order rubric red as
-   the single accent, hairline rules instead of shadows. */
+/* ══════════════════════════════════════════════════════════════════
+   H & E LANDSCAPING — BRAND TOKENS
+   Every value is derived from the badge on the truck or from the
+   brief. Colors are space-separated RGB channels so Tailwind's
+   `/<alpha-value>` opacity syntax works against them.
+   ══════════════════════════════════════════════════════════════════ */
 :root {
-  /* TODO(client): brand colors */
-  --brand: 168 48 28;          /* work-order red */
-  --brand-strong: 134 38 22;
-  --brand-soft: 244 233 229;
+  /* GROUND — white, committed. Not off-white, not cream. */
+  --surface: 255 255 255;
+  --surface-alt: 244 246 241;   /* #F4F6F1 green-biased neutral: mown-grass haze, not beige */
+  --surface-sunk: 233 239 228;  /* #E9EFE4 the step below haze — image wells, empty states */
+  --night: 14 22 17;            /* #0E1611 the one dark ground: storm block + footer */
 
-  --ink: 28 27 24;             /* warm near-black */
-  --ink-soft: 82 79 72;
-  --ink-faint: 133 129 119;
+  /* INK — near-black with a green cast, like shade under a treeline */
+  --ink: 22 33 26;              /* #16211A  16.6:1 on white */
+  --ink-soft: 78 91 82;         /* #4E5B52   7.1:1 on white */
+  --ink-faint: 101 110 104;     /* #656E68   5.3:1 on white, 4.5:1 on sunk */
+  --line: 220 227 216;          /* #DCE3D8 */
 
-  --surface: 251 250 246;      /* paper — warm neutral bias */
-  --surface-alt: 244 242 235;  /* tonal step, no shadows */
-  --line: 224 220 209;
+  /* GREEN — two of them, doing two different jobs.
+     --brand carries every button, link and green word (6.3:1 both ways).
+     --leaf is the badge green: 3.1:1 on white, so it is GRAPHIC ONLY —
+     hex marks, rails, rules, underlines. Never text, never a fill
+     behind text. */
+  --brand: 44 110 27;           /* #2C6E1B */
+  --brand-strong: 33 82 18;     /* #215212  pressed / hover */
+  --brand-soft: 237 245 231;    /* #EDF5E7  tint behind focused fields */
+  --leaf: 80 166 41;            /* #50A629  graphic only */
 
-  /* TODO(client): typefaces. Display ships self-hosted via Fontsource
-     (see app/layout.tsx import). To swap: npm i @fontsource/<face>,
-     change the import, change this stack. */
-  --font-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
-  --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-utility: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* WARM — rationed on purpose.
+     --sun is a FILL under dark ink, never ink itself (2.1:1 on white).
+     --storm is spent on the storm block and nowhere else. Spending it
+     anywhere else costs it its urgency.
+     Storm splits the same way the greens do, and for the same reason:
+     --storm is GRAPHIC (the hex mark, the rule, the glow) plus the one
+     word set in it against the night ground, where it reaches 4.9:1.
+     White on it is only 3.7:1, so anything carrying white text — the
+     CTA — takes --storm-deep instead. */
+  --sun: 255 159 0;             /* #FF9F00 */
+  --storm: 242 68 15;           /* #F2440F  graphic + text on night */
+  --storm-deep: 218 61 14;      /* #DA3D0E  4.5:1 under white */
+  --storm-press: 191 54 12;     /* #BF360C  5.6:1 under white */
+
+  /* TYPE — Archivo for display and utility labels (it matches the heavy
+     wide grotesque of the badge wordmark), Karla for body. Both are
+     self-hosted via Fontsource; see app/layout.tsx. */
+  --font-display: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Karla", ui-sans-serif, system-ui, sans-serif;
+  --font-utility: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
+
+  /* The badge silhouette. Three places only: the slider handle, the
+     process step numbers, and bullet marks. */
+  /* deliberate-ignore round-stat — these are polygon vertices, not figures */
+  --hex: polygon(50% 0%, 100% 22%, 100% 78%, 50% 100%, 0% 78%, 0% 22%);
+
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html {
   scroll-behavior: smooth;
+  scrollbar-color: rgb(var(--brand)) rgb(var(--surface-sunk));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -41,61 +73,186 @@ html {
 }
 
 body {
-  @apply bg-surface font-body text-ink-soft antialiased;
+  @apply bg-surface font-body text-[17px] leading-[1.62] text-ink-soft antialiased md:text-[18px];
+  letter-spacing: 0.005em;
 }
 
+/* Display type: Archivo pushed wide (the badge wordmark is a heavy wide
+   grotesque) and set tight. Sentence case — the voice is a neighbour
+   talking, not a sign shouting. */
 h1, h2, h3 {
-  @apply font-display uppercase tracking-wide text-ink;
+  @apply font-display font-extrabold text-ink;
+  font-stretch: 112%;
+  line-height: 1.02;
+  letter-spacing: -0.022em;
+  text-wrap: balance;
 }
 
-h4 {
-  @apply text-ink;
+h1 {
+  @apply text-[clamp(2.5rem,7.2vw,4.5rem)] font-black;
+  line-height: 0.98;
+  letter-spacing: -0.03em;
 }
 
-/* Selection, caret, scrollbar — themed, not inherited */
+h2 {
+  @apply text-[clamp(2rem,4.6vw,3.35rem)];
+}
+
+h3 {
+  @apply text-[clamp(1.15rem,2vw,1.4rem)];
+  line-height: 1.16;
+  letter-spacing: -0.012em;
+}
+
+a {
+  @apply text-brand underline-offset-[3px];
+  text-decoration-thickness: 1px;
+}
+
 ::selection {
-  background: rgb(var(--ink));
-  color: rgb(var(--surface));
+  background: rgb(var(--leaf));
+  color: #fff;
 }
 
-input, textarea {
+input, textarea, select {
   caret-color: rgb(var(--brand));
-}
-
-@media (min-width: 768px) {
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: rgb(var(--ink-faint)) transparent;
-  }
 }
 
 /* Visible keyboard focus everywhere */
 :focus-visible {
-  outline: 2px solid rgb(var(--brand));
+  outline: 3px solid rgb(var(--brand));
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
-/* ── Spacing registers ──────────────────────────────────────────────
-   Intra-component: 8/12/20px (gap-2 / gap-3 / gap-5 in markup).
-   Section beat: 56px mobile / 88px desktop. The contact section takes
-   a deliberately larger 128px top break (.section-break) to mark the
-   change of register into the work-order sheet. */
-.section {
-  @apply mx-auto w-full max-w-content px-5 py-14 sm:px-8 md:py-[88px];
+@layer components {
+  /* ── Layout ──────────────────────────────────────────────────────
+     `.wrap` is the measure; `.section` adds the page's vertical beat.
+     Two spacing registers on purpose: intra-component steps come from
+     Tailwind's 6/10/16/24/36px rungs, the section beat is 88px mobile
+     / 136px desktop and belongs to nothing else. */
+  .wrap {
+    @apply mx-auto w-full max-w-content px-5 sm:px-10;
+  }
+
+  .section {
+    @apply wrap py-[88px] md:py-[136px];
+  }
+
+  /* Utility labels — Archivo small caps. Field labels, kickers, the
+     "where we work" register. Never a decorative kicker over a heading. */
+  .u-label {
+    @apply font-utility text-[0.74rem] font-bold uppercase tracking-[0.11em] text-ink-faint;
+    font-stretch: 100%;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Tabular display numerals — step numbers. */
+  .u-num {
+    @apply font-utility font-black;
+    font-stretch: 118%;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The badge silhouette as a shape. */
+  .hex {
+    clip-path: var(--hex);
+  }
+
+  /* ── Buttons ─────────────────────────────────────────────────────
+     Every state is declared: hover, active (a real 2px press, not a
+     lift), focus-visible in sun yellow so it never disappears against
+     the green fill, and disabled. */
+  .btn {
+    @apply inline-flex cursor-pointer items-center gap-2.5 rounded border-[1.5px] border-brand
+           bg-brand px-[26px] py-4 font-utility text-[1.02rem] font-extrabold
+           tracking-[-0.005em] text-white no-underline
+           transition-[transform,background-color,border-color,color] duration-200
+           hover:border-brand-strong hover:bg-brand-strong
+           active:translate-y-0.5 active:scale-[0.988]
+           disabled:pointer-events-none disabled:opacity-45;
+    font-stretch: 106%;
+  }
+
+  .btn:focus-visible {
+    outline: 3px solid rgb(var(--sun));
+    outline-offset: 3px;
+  }
+
+  .btn-ghost {
+    @apply border-line bg-transparent text-ink
+           hover:border-brand hover:bg-brand-soft hover:text-brand;
+  }
+
+  /* Sun is a fill under dark ink — the ink never sits *in* the yellow. */
+  .btn-sun {
+    @apply border-sun bg-sun text-ink hover:border-[#ffb733] hover:bg-[#ffb733] hover:text-ink;
+  }
+
+  .btn-storm {
+    @apply border-storm-deep bg-storm-deep text-white
+           hover:border-storm-press hover:bg-storm-press;
+  }
+
+  /* ── Form fields ─────────────────────────────────────────────────
+     Boxed, not ruled: this form gets filled in on a phone in a
+     driveway, and a tap target needs a visible edge. */
+  .field-input {
+    @apply w-full rounded border-[1.5px] border-line bg-surface px-[15px] py-[13px]
+           font-body text-base text-ink transition-colors duration-200
+           placeholder:text-ink-faint hover:border-ink-faint
+           focus:border-brand focus:bg-brand-soft focus:outline-none;
+  }
 }
 
-.section-break {
-  @apply md:pt-32;
+/* ── Marquee ───────────────────────────────────────────────────────
+   The track holds the service list twice; translating half its width
+   loops seamlessly. Paused on hover, off entirely under reduced
+   motion (see below). */
+@keyframes marquee-roll {
+  to {
+    transform: translateX(-50%);
+  }
 }
 
-/* Mono utility labels — form-header register (license, hours, field
-   labels). Used sparingly; not a decorative kicker above headings. */
-.u-label {
-  @apply font-mono text-[11px] uppercase tracking-[0.12em] text-ink-faint;
-  font-variant-numeric: tabular-nums;
+.marquee-track {
+  animation: marquee-roll 42s linear infinite;
 }
 
-/* Buttons: pressed state everywhere, no hover lifts */
-.btn-press {
-  @apply transition-colors active:translate-y-px;
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* The sun-yellow swipe behind "back to life" in the hero. */
+@keyframes underline-swipe {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.swipe-underline {
+  animation: underline-swipe 0.7s 0.5s var(--ease-out) forwards;
+}
+
+/* A nudge on the drag hint, so the affordance reads without a caption. */
+@keyframes hint-nudge {
+  /* deliberate-ignore round-stat — keyframe offsets, not figures */
+  0%, 68%, 100% { transform: translateX(0); }
+  80% { transform: translateX(5px); }
+  90% { transform: translateX(-3px); }
+}
+
+.hint-nudge {
+  animation: hint-nudge 2.6s var(--ease) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .swipe-underline {
+    transform: scaleX(1);
+  }
 }

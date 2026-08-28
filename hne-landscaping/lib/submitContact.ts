@@ -20,11 +20,8 @@
 export type ContactPayload = {
   name: string;
   phone: string;
-  email: string;
-  /** Which job — one of client.form.serviceOptions */
-  service: string;
-  /** How soon — one of client.form.urgencyOptions */
-  urgency: string;
+  /** Which job — one of client.contact.jobOptions */
+  job: string;
   /** Free-text detail; optional on the form */
   message: string;
   /** honeypot — must be empty; bots fill it */
@@ -55,9 +52,7 @@ export async function submitContact(
   const body = JSON.stringify({
     name: payload.name,
     phone: payload.phone,
-    email: payload.email,
-    service: payload.service,
-    urgency: payload.urgency,
+    job: payload.job,
     message: payload.message,
     source: typeof window !== "undefined" ? window.location.href : "",
     submittedAt: new Date().toISOString(),
@@ -81,14 +76,14 @@ export async function submitContact(
     if (!res.ok) {
       return {
         ok: false,
-        error: "Something went wrong sending your message. Please call us instead.",
+        error: "Something went wrong sending that. Please give us a call instead.",
       };
     }
     return { ok: true };
   } catch {
     return {
       ok: false,
-      error: "Couldn't reach the server. Check your connection and try again, or call us.",
+      error: "Couldn't reach the server. Check your connection and try again, or just call us.",
     };
   }
 }

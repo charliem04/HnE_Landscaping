@@ -57,7 +57,7 @@ export default function PrivacyPage() {
       <p>
         We keep contact and job information as long as needed for business and
         legal purposes. You may ask us to correct or delete your information
-        by contacting us at {client.email}.
+        by contacting us at {client.email || client.phone}.
       </p>
       <h2>Changes</h2>
       <p>
@@ -66,7 +66,8 @@ export default function PrivacyPage() {
       </p>
       <h2>Contact</h2>
       <p>
-        Privacy questions: {client.email} or {client.phone}.
+        Privacy questions:{client.email ? ` ${client.email} or` : ""}{" "}
+        {client.phone}.
       </p>
     </LegalPage>
   );

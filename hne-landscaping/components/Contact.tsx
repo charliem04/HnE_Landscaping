@@ -1,10 +1,12 @@
 "use client";
 
 /**
- * THE SIGNATURE ELEMENT — the contact form styled as the work-order /
- * estimate sheet a trades shop actually writes on: mono sheet header,
- * ruled underline fields, license line printed at the sheet foot.
- * Everything else on the page stays quieter than this.
+ * The quote form. Four fields, because every extra one is a reason to
+ * close the tab — and the phone number beside it is the faster path
+ * for anyone who'd rather just talk, which is most of them.
+ *
+ * The voice stays flat here on purpose. Humour belongs to the storm
+ * block; a form label or an error message is never the place for it.
  */
 import { useState, type FormEvent } from "react";
 import { client } from "@/client.config";
@@ -16,17 +18,16 @@ type Status = "idle" | "sending" | "sent" | "error";
 const EMPTY = {
   name: "",
   phone: "",
-  email: "",
-  service: "",
-  urgency: "",
+  job: client.contact.jobOptions[0],
   message: "",
   company: "", // honeypot
 };
 
 export function Contact() {
+  const { heading, lede, facts, jobOptions, submitLabel, note, success } = client.contact;
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
-  const [form, setForm] = useState(EMPTY);
+  const [form, setForm] = useState<typeof EMPTY>(EMPTY);
 
   const set =
     (key: keyof typeof EMPTY) =>
@@ -47,245 +48,136 @@ export function Contact() {
     }
   }
 
-  // Paper-form fields: underline rule only, no box chrome
-  const field =
-    "w-full border-0 border-b border-line bg-transparent px-0 py-2 text-ink " +
-    "placeholder:text-ink-faint focus:border-ink focus:ring-0";
-
-  // Selects keep the same rule; native chrome is stripped so the caret
-  // beside them can be set in the sheet's mono register.
-  const select = `${field} cursor-pointer appearance-none pr-6`;
-  // An unchosen select sits at placeholder weight, like an unfilled blank.
-  const selectTone = (v: string) => (v ? "text-ink" : "text-ink-faint");
-
   return (
-    <section id="contact" className="section section-break">
-      <div className="grid gap-12 md:grid-cols-[1.1fr_0.9fr]">
+    <section id="quote" className="section">
+      <Reveal className="max-w-[64ch]">
+        <h2>{heading}</h2>
+        <p className="mt-6 max-w-[60ch] text-[clamp(1.06rem,1.7vw,1.28rem)]">{lede}</p>
+      </Reveal>
+
+      <div className="mt-12 grid gap-9 md:grid-cols-2 md:gap-16">
         <Reveal>
-          <div className="rounded border border-ink bg-surface">
-            {/* Sheet header */}
-            <div className="flex items-baseline justify-between gap-4 border-b border-ink px-6 py-4">
-              <h2 className="text-2xl font-bold sm:text-3xl">
-                {client.copy.contactHeading}
-              </h2>
-              <span className="u-label whitespace-nowrap">
-                Work order · No. ____
-              </span>
-            </div>
+          <p className="u-label m-0 mb-2.5">Call or text</p>
+          <a
+            href={`tel:${client.phoneHref}`}
+            className="inline-block font-display text-[clamp(2rem,5.4vw,3.1rem)] font-black
+                       leading-none tracking-[-0.03em] text-ink no-underline [font-stretch:118%]
+                       transition-colors duration-200 hover:text-brand active:text-brand-strong"
+          >
+            {client.phone}
+          </a>
 
-            <div className="px-6 py-6">
-              {status === "sent" ? (
-                <div>
-                  <p className="u-label">Received</p>
-                  <h3 className="mt-2 text-2xl font-bold">Request logged</h3>
-                  <p className="mt-2 leading-relaxed">
-                    We'll get back to you shortly. Need us sooner? Call{" "}
-                    <a
-                      href={`tel:${client.phoneHref}`}
-                      className="font-mono font-semibold tabular-nums text-brand"
-                    >
-                      {client.phone}
-                    </a>
-                    .
-                  </p>
-                </div>
-              ) : (
-                <form onSubmit={onSubmit} className="space-y-5">
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="u-label mb-1 block">Name</span>
-                      <input
-                        name="name"
-                        required
-                        maxLength={100}
-                        autoComplete="name"
-                        value={form.name}
-                        onChange={set("name")}
-                        className={field}
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="u-label mb-1 block">Phone</span>
-                      <input
-                        name="phone"
-                        type="tel"
-                        required
-                        maxLength={30}
-                        autoComplete="tel"
-                        value={form.phone}
-                        onChange={set("phone")}
-                        className={`${field} font-mono tabular-nums`}
-                      />
-                    </label>
-                  </div>
-
-                  <label className="block">
-                    <span className="u-label mb-1 block">Email</span>
-                    <input
-                      name="email"
-                      type="email"
-                      required
-                      maxLength={254}
-                      autoComplete="email"
-                      value={form.email}
-                      onChange={set("email")}
-                      className={field}
-                    />
-                  </label>
-
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="u-label mb-1 block">Work requested</span>
-                      <span className="relative block">
-                        <select
-                          name="service"
-                          required
-                          value={form.service}
-                          onChange={set("service")}
-                          className={`${select} ${selectTone(form.service)}`}
-                        >
-                          <option value="">Select…</option>
-                          {client.form.serviceOptions.map((s) => (
-                            <option key={s} value={s} className="text-ink">
-                              {s}
-                            </option>
-                          ))}
-                        </select>
-                        <span
-                          aria-hidden
-                          className="pointer-events-none absolute bottom-2.5 right-0 font-mono text-xs text-ink-faint"
-                        >
-                          ▾
-                        </span>
-                      </span>
-                    </label>
-
-                    <label className="block">
-                      <span className="u-label mb-1 block">Needed by</span>
-                      <span className="relative block">
-                        <select
-                          name="urgency"
-                          required
-                          value={form.urgency}
-                          onChange={set("urgency")}
-                          className={`${select} ${selectTone(form.urgency)}`}
-                        >
-                          <option value="">Select…</option>
-                          {client.form.urgencyOptions.map((u) => (
-                            <option key={u} value={u} className="text-ink">
-                              {u}
-                            </option>
-                          ))}
-                        </select>
-                        <span
-                          aria-hidden
-                          className="pointer-events-none absolute bottom-2.5 right-0 font-mono text-xs text-ink-faint"
-                        >
-                          ▾
-                        </span>
-                      </span>
-                    </label>
-                  </div>
-
-                  <label className="block">
-                    <span className="u-label mb-1 block">Details (optional)</span>
-                    <textarea
-                      name="message"
-                      rows={4}
-                      maxLength={2000}
-                      value={form.message}
-                      onChange={set("message")}
-                      className={`${field} resize-none`}
-                    />
-                  </label>
-
-                  {/* Honeypot — visually hidden, bots fill it */}
-                  <label className="absolute -left-[9999px]" aria-hidden tabIndex={-1}>
-                    Company
-                    <input
-                      name="company"
-                      tabIndex={-1}
-                      autoComplete="off"
-                      value={form.company}
-                      onChange={set("company")}
-                    />
-                  </label>
-
-                  {status === "error" && (
-                    <p
-                      role="alert"
-                      className="border-l-2 border-brand pl-3 text-sm font-medium text-brand"
-                    >
-                      {error}
-                    </p>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={status === "sending"}
-                    className="btn-press rounded bg-brand px-7 py-3 text-lg font-semibold text-white hover:bg-brand-strong active:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {status === "sending" ? "Sending…" : "Send request"}
-                  </button>
-                </form>
-              )}
-            </div>
-
-            {/* Sheet foot: license line */}
-            {client.badges.length > 0 && (
-              <p className="u-label border-t border-line px-6 py-3">
-                {client.badges.join("  ·  ")}
-              </p>
-            )}
+          <div className="mt-9 grid gap-6">
+            {facts.map((fact) => (
+              <div key={fact.label}>
+                <p className="u-label m-0 mb-1.5">{fact.label}</p>
+                <p className="m-0">{fact.body}</p>
+              </div>
+            ))}
           </div>
         </Reveal>
 
-        <Reveal delay={0.1}>
-          <div className="space-y-7">
-            <div>
-              <h3 className="u-label">Call or text</h3>
-              <a
-                href={`tel:${client.phoneHref}`}
-                className="mt-1 block font-mono text-2xl font-semibold tabular-nums text-ink underline-offset-4 hover:underline active:text-ink-faint"
-              >
-                {client.phone}
-              </a>
-            </div>
-            <div>
-              <h3 className="u-label">Address</h3>
-              <p className="mt-1 leading-relaxed text-ink">
-                {client.address.street}
-                <br />
-                {client.address.city}, {client.address.region} {client.address.postalCode}
+        <Reveal delay={0.07}>
+          {status === "sent" ? (
+            <div role="status" className="rounded border border-leaf bg-brand-soft p-6 text-ink">
+              <strong className="font-display text-xl font-extrabold">{success.heading}</strong>
+              <p className="mt-2">
+                {success.body}{" "}
+                <a href={`tel:${client.phoneHref}`} className="font-semibold">
+                  {client.phone}
+                </a>
+                .
               </p>
             </div>
-            <div>
-              <h3 className="u-label">Hours</h3>
-              <dl className="mt-2 max-w-xs">
-                {client.hours.map((h) => (
-                  <div key={h.days} className="flex justify-between gap-4 border-b border-line py-1.5 text-sm">
-                    <dt className="text-ink-faint">{h.days}</dt>
-                    <dd className="font-mono tabular-nums text-ink">{h.time}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
+          ) : (
+            <form onSubmit={onSubmit} noValidate>
+              <label className="mb-4 block">
+                <span className="mb-[7px] block text-[0.84rem] font-bold text-ink">Your name</span>
+                <input
+                  name="name"
+                  type="text"
+                  required
+                  maxLength={100}
+                  autoComplete="name"
+                  placeholder="Jane Doe"
+                  value={form.name}
+                  onChange={set("name")}
+                  className="field-input"
+                />
+              </label>
 
-            {/* Map slot */}
-            {client.mapEmbedSrc ? (
-              <iframe
-                src={client.mapEmbedSrc}
-                title={`Map to ${client.businessName}`}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                className="h-52 w-full rounded border border-line"
-              />
-            ) : (
-              <div className="flex h-52 items-center justify-center rounded border border-dashed border-line text-sm text-ink-faint">
-                Map embed goes here — set mapEmbedSrc in client.config.ts
-              </div>
-            )}
-          </div>
+              <label className="mb-4 block">
+                <span className="mb-[7px] block text-[0.84rem] font-bold text-ink">Phone number</span>
+                <input
+                  name="phone"
+                  type="tel"
+                  required
+                  maxLength={30}
+                  autoComplete="tel"
+                  placeholder="(479) 000-0000"
+                  value={form.phone}
+                  onChange={set("phone")}
+                  className="field-input"
+                />
+              </label>
+
+              <label className="mb-4 block">
+                <span className="mb-[7px] block text-[0.84rem] font-bold text-ink">
+                  What do you need?
+                </span>
+                <select
+                  name="job"
+                  value={form.job}
+                  onChange={set("job")}
+                  className="field-input cursor-pointer"
+                >
+                  {jobOptions.map((o) => (
+                    <option key={o} value={o}>
+                      {o}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="mb-4 block">
+                <span className="mb-[7px] block text-[0.84rem] font-bold text-ink">
+                  Tell us about it
+                </span>
+                <textarea
+                  name="message"
+                  rows={4}
+                  maxLength={2000}
+                  placeholder="A few sentences is plenty. Photos help too — you can text them to us."
+                  value={form.message}
+                  onChange={set("message")}
+                  className="field-input min-h-[110px] resize-y"
+                />
+              </label>
+
+              {/* Honeypot — off-screen, never announced. Bots fill it. */}
+              <label className="absolute -left-[9999px]" aria-hidden tabIndex={-1}>
+                Company
+                <input
+                  name="company"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={form.company}
+                  onChange={set("company")}
+                />
+              </label>
+
+              {status === "error" && (
+                <p role="alert" className="mb-4 border-l-2 border-storm pl-3 text-sm font-semibold text-storm-deep">
+                  {error}
+                </p>
+              )}
+
+              <button type="submit" disabled={status === "sending"} className="btn w-full justify-center">
+                {status === "sending" ? "Sending…" : submitLabel}
+              </button>
+              <p className="mt-4 text-[0.86rem] text-ink-faint">{note}</p>
+            </form>
+          )}
         </Reveal>
       </div>
     </section>

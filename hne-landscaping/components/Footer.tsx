@@ -10,31 +10,88 @@ export function Footer() {
   ].filter((s) => s.href);
 
   return (
-    <footer className="border-t border-line bg-surface-alt">
-      <div className="mx-auto flex max-w-content flex-col gap-5 px-5 py-10 sm:flex-row sm:items-end sm:justify-between sm:px-8">
+    <footer className="bg-night pb-10 pt-16 text-[#98A79B]">
+      <div className="wrap grid gap-9 md:grid-cols-[1.3fr_1fr_1fr]">
         <div>
-          <div className="font-display text-lg font-bold uppercase tracking-wide text-ink">
-            {client.businessName}
-          </div>
-          <p className="u-label mt-2">
-            © {year} {client.legalName}
-            {client.badges[0] ? ` · ${client.badges[0]}` : ""}
-          </p>
+          <img
+            src={client.logoPath}
+            alt={client.businessName}
+            width={360}
+            height={435}
+            loading="lazy"
+            className="h-[78px] w-auto"
+          />
+          <p className="mt-6 max-w-[34ch]">{client.footer.blurb}</p>
         </div>
 
-        <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm" aria-label="Footer">
-          {socials.map((s) => (
-            <a key={s.label} href={s.href} className="text-ink-soft underline-offset-4 hover:text-ink hover:underline active:text-ink-faint" target="_blank" rel="noopener noreferrer">
-              {s.label}
-            </a>
-          ))}
-          <Link href="/terms/" className="text-ink-soft underline-offset-4 hover:text-ink hover:underline active:text-ink-faint">
-            Terms of service
+        <div>
+          <h4 className="mb-4 font-display text-[0.76rem] font-extrabold uppercase tracking-[0.12em] text-white">
+            Services
+          </h4>
+          <ul className="m-0 grid list-none gap-2.5 p-0 text-[0.95rem]">
+            {client.footer.services.map((s) => (
+              <li key={s}>
+                <a href="#services" className="text-[#C3CFC5] no-underline hover:text-sun active:text-white">
+                  {s}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="mb-4 font-display text-[0.76rem] font-extrabold uppercase tracking-[0.12em] text-white">
+            Get in touch
+          </h4>
+          <ul className="m-0 grid list-none gap-2.5 p-0 text-[0.95rem]">
+            <li>
+              <a href={`tel:${client.phoneHref}`} className="text-[#C3CFC5] no-underline hover:text-sun active:text-white">
+                {client.phone}
+              </a>
+            </li>
+            <li>
+              <a href="#quote" className="text-[#C3CFC5] no-underline hover:text-sun active:text-white">
+                Request a free quote
+              </a>
+            </li>
+            {client.email && (
+              <li>
+                <a href={`mailto:${client.email}`} className="text-[#C3CFC5] no-underline hover:text-sun active:text-white">
+                  {client.email}
+                </a>
+              </li>
+            )}
+            <li>{client.serviceArea}</li>
+            <li>Se habla español</li>
+            {socials.map((s) => (
+              <li key={s.label}>
+                <a
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#C3CFC5] no-underline hover:text-sun active:text-white"
+                >
+                  {s.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <div className="wrap mt-12 flex flex-wrap justify-between gap-4 border-t border-[#D7E0D8]/[0.14] pt-6 text-[0.86rem]">
+        <span>
+          © {year} {client.legalName}. Family-owned and operated.
+        </span>
+        <span className="flex flex-wrap gap-x-5 gap-y-2">
+          <Link href="/terms/" className="text-[#98A79B] no-underline hover:text-sun active:text-white">
+            Terms
           </Link>
-          <Link href="/privacy/" className="text-ink-soft underline-offset-4 hover:text-ink hover:underline active:text-ink-faint">
-            Privacy policy
+          <Link href="/privacy/" className="text-[#98A79B] no-underline hover:text-sun active:text-white">
+            Privacy
           </Link>
-        </nav>
+          <span>{client.footer.signoff}</span>
+        </span>
       </div>
     </footer>
   );

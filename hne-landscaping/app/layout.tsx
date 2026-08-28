@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
-// Display face, self-hosted via Fontsource (bundled at build, no CDN).
-// TODO(client): if the brand needs a different face, swap the package
-// and the --font-display stack in globals.css together.
-import "@fontsource/barlow-condensed/600.css";
-import "@fontsource/barlow-condensed/700.css";
+// Self-hosted via Fontsource — bundled at build, no CDN request, no
+// layout shift from a third-party stylesheet.
+//   Archivo (variable, wdth axis) — display + utility labels. The width
+//   axis is the point: the badge wordmark is a heavy WIDE grotesque, and
+//   `font-stretch: 112%` on headings is what makes the type match the
+//   sign on the truck.
+//   Karla — body. Open apertures, sized for reading on a phone outdoors.
+import "@fontsource-variable/archivo/wdth.css";
+import "@fontsource/karla/400.css";
+import "@fontsource/karla/600.css";
+import "@fontsource/karla/700.css";
 import "./globals.css";
 import { client } from "@/client.config";
 import { JsonLd } from "@/components/JsonLd";

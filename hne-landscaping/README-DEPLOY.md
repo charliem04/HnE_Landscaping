@@ -1,40 +1,54 @@
-# Go-Live Checklist — touch every item before a client site ships
+# Go-Live Checklist — H & E Landscaping
 
-Workflow per client: `git clone` → new repo → work through this list top
-to bottom → `npm run deploy`.
+The site is a static export. `npm run build` emits `./out`; deploy that
+folder. Content lives in `client.config.ts` and photos in
+`/public/photos` — you should not need to edit a component to change
+wording, a list item or a picture.
 
-## 1. `client.config.ts` — every `TODO(client)` field
-- [ ] `businessName`, `legalName`, `tagline`, `subheadline`
-- [ ] `siteUrl` (the real production domain, https, no trailing slash)
-- [ ] `metaTitle`, `metaDescription`
-- [ ] `phone`, `phoneHref` (E.164), `email`
-- [ ] `address`, `hours`
-- [ ] `mapEmbedSrc` (Google Maps → Share → Embed → copy the iframe `src`)
-- [ ] `calLink` (client's Cal.com "username/event" — or `""` to hide booking)
-- [ ] `socials` (empty string hides a link)
-- [ ] `services` — icons, titles, descriptions
-- [ ] `form.serviceOptions`, `form.urgencyOptions` — the two required
-      dropdowns on the contact sheet; match the trades the client actually
-      takes calls for
-- [ ] `about` — heading, body paragraphs, stats (or `[]`)
-- [ ] `testimonials` — REAL reviews only (or `[]` to hide the section)
-- [ ] `badges` — real license number(s)
-- [ ] `copy` — skim; defaults usually fine
+## 1. `client.config.ts` — the remaining `TODO(client)` fields
+- [ ] `siteUrl` — the real production domain, https, no trailing slash.
+      Nothing else can be right until this is: it feeds the OG tags,
+      the sitemap and the JSON-LD.
+- [ ] `email` — leave `""` if the business only takes calls. Empty is
+      handled everywhere (footer, legal pages, JSON-LD all adapt); a
+      wrong address is worse than none.
+- [ ] `socials` — Facebook / Instagram / Google Business Profile. Empty
+      string hides the link.
+- [ ] `gallery.items[].tag` — the "One available now" chip on the
+      chicken coop. Delete the line once it sells.
+- [ ] Everything else (phone, service area, copy, service lists,
+      process steps) is real and current — re-read it, don't assume.
 
-## 2. Images — `/public`
-- [ ] Replace `placeholder/logo.svg` (or add real logo + update `logoPath`)
-- [ ] Replace hero image slot in `components/Hero.tsx` with a real
-      job-site photo/video (see the TODO comment there) + write alt text
-- [ ] Replace `placeholder/about.svg` reference + write alt text in
-      `components/About.tsx`
-- [ ] Create a real 1200×630 OG image, update `ogImagePath`
+## 2. Photos — `/public/photos`
+Every photo slot on the page is a **4:3 well** under `object-fit: cover`,
+and the files ship pre-cropped to that aspect, so a replacement dropped
+in at 4:3 lands exactly as intended.
+
+- [ ] Sizes are per-slot, not one-size-fits-all: hero / before-after /
+      process / about are 1360px wide, gallery cards 900px, the storm
+      backdrop 1500px at lower quality because it sits at 34% opacity.
+      Match those when swapping, or the page gets heavier for nothing.
+- [ ] WebP at quality ~72 is the format. `og.jpg` stays JPEG — social
+      scrapers are unreliable with WebP.
+- [ ] **Alt text lives in `client.config.ts`, beside the photo path.**
+      Change one and change the other. Describe the photo that ships,
+      after cropping — not the one that came off the phone.
+- [ ] The before/after pairs must share a crop. If you re-crop a
+      "before", re-crop its "after" the same way or the slider stops
+      reading as one place.
+- [ ] `app/icon.png` / `app/apple-icon.png` are the badge on
+      transparency. Regenerate both together if the logo changes.
 
 ## 3. Environment — `.env.local` (copy from `.env.example`)
 - [ ] `NEXT_PUBLIC_FORM_ENDPOINT` — Formspree URL or Cloudflare Worker.
-      Unset = form silently succeeds in demo mode. DO NOT SHIP UNSET.
+      **Unset = the form silently succeeds in demo mode. DO NOT SHIP
+      UNSET** — every lead would vanish with a thank-you message.
 - [ ] `NEXT_PUBLIC_LEAD_WEBHOOK_URL` — only for Speed-to-Lead clients
 - [ ] `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` — or leave empty for no analytics
 - [ ] Mirror these in Cloudflare Pages → Settings → Environment variables
+
+The form posts `{ name, phone, job, message }`. If you add a field to
+the form, add it to `ContactPayload` in `lib/submitContact.ts` too.
 
 ## 4. Legal — ⚠️ both pages ship with REPLACE BEFORE LAUNCH banners
 - [ ] `app/terms/page.tsx` — review/replace text, set effective date,
@@ -42,34 +56,45 @@ to bottom → `npm run deploy`.
 - [ ] `app/privacy/page.tsx` — same, and confirm disclosures match what
       actually runs (analytics on/off, lead webhook on/off)
 
-## 5. Brand
-- [ ] `app/globals.css` — set the color tokens (`--brand*`, `--ink*`,
-      `--surface*`, `--line`). Default skin: paper ground, warm ink,
-      work-order red accent, 2px radius, rules instead of shadows.
-- [ ] Display font: default is Barlow Condensed via Fontsource. To
-      swap: `npm i @fontsource/<face>`, change the import in
-      `app/layout.tsx`, and update `--font-display` in globals.css.
+## 5. Brand — rules that are load-bearing
+Tokens live in `app/globals.css`. Three of them carry usage constraints
+the type system cannot enforce, and breaking them breaks accessibility:
+
+| Token | Value | Rule |
+|---|---|---|
+| `brand` | `#2C6E1B` | 6.3:1 — every button, link and green word |
+| `leaf` | `#50A629` | 3.1:1 — **graphic only**: hex marks, rails, rules. Never text |
+| `sun` | `#FF9F00` | 2.1:1 — **fill only**, under dark ink. Never ink itself |
+| `storm` | `#F2440F` | graphic, plus the one word set in it on the night ground |
+| `storm-deep` | `#DA3D0E` | 4.5:1 under white — anything carrying white text |
+
+The hexagon (`--hex`) appears in exactly three places: the slider
+handle, the process step numbers, and bullet marks. It keeps its weight
+because everywhere else stays quiet.
+
+Type is Archivo (variable, `wdth` axis) for display and Karla for body,
+both self-hosted via Fontsource — see the imports in `app/layout.tsx`.
+Headings set `font-stretch: 112%`; that width is what makes the type
+match the badge wordmark, so don't drop it when editing.
 
 ## 6. Verify before DNS cutover
 - [ ] `npm run build` clean
+- [ ] `npm run check` clean (0 errors, 0 warnings)
 - [ ] Form submits end-to-end (check inbox AND lead webhook if enabled)
-- [ ] Cal.com embed loads and books a test slot
+- [ ] Drag a before/after slider on a real touch device; tab to it and
+      check arrow keys, Home and End move the split
 - [ ] Cookie banner: decline → no analytics request in Network tab;
       accept → script loads
 - [ ] Lighthouse mobile ≥ 90 performance
-- [ ] Rich Results Test on the LocalBusiness JSON-LD
-- [ ] tel:/sms: links work from a real phone
+- [ ] Rich Results Test on the JSON-LD (it declares a service-area
+      business with no street address — that is deliberate)
+- [ ] tel: links work from a real phone
 - [ ] Grep the repo for `TODO(client)` — must return zero results
-- [ ] `npm run check` — the design checker's remaining findings all sit
-      in `client.config.ts` flagging placeholder identity (acme,
-      example.com, 555 number). They go quiet once real client data is
-      in. New findings elsewhere mean a component edit inherited a
-      default — fix or consciously suppress with `deliberate-ignore`.
 
 ## Deploy
 ```bash
 npm run build            # emits ./out (static export)
 npx wrangler pages deploy out
 ```
-Then Cloudflare Pages → Custom domains → attach the client domain, and
-submit the sitemap (`{siteUrl}/sitemap.xml`) in Google Search Console.
+Then Cloudflare Pages → Custom domains → attach the domain, and submit
+the sitemap (`{siteUrl}/sitemap.xml`) in Google Search Console.

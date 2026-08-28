@@ -1,28 +1,42 @@
 "use client";
 
 /**
- * Mobile-only sticky call/estimate bar — the highest-converting element
- * on trade sites. Hidden on md+ where the nav CTA is visible.
+ * Mobile call bar. It stays down through the hero — where the same two
+ * buttons are already on screen — and slides up once they've scrolled
+ * past, so it arrives when it's the only way to act rather than
+ * covering the page from the first paint.
+ *
+ * Elevation policy exception, same as the slider handle: this floats
+ * over content rather than sitting in the page, so it casts a shadow.
  */
+import { useEffect, useState } from "react";
 import { client } from "@/client.config";
 
 export function StickyCTA() {
+  const [up, setUp] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setUp(window.scrollY > window.innerHeight * 0.6);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 gap-px border-t border-line bg-line md:hidden" role="region" aria-label="Quick contact">
-      <a
-        href={`tel:${client.phoneHref}`}
-        className="flex items-center justify-center gap-2 bg-brand py-3.5 font-semibold text-white active:bg-brand-strong"
-      >
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
-          <path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.3 0 .7-.2 1l-2.3 2.2Z" />
-        </svg>
-        Call now
+    <div
+      role="region"
+      aria-label="Quick contact"
+      className={`fixed inset-x-0 bottom-0 z-[70] flex gap-2.5 border-t border-line bg-surface
+                  px-4 pb-[calc(0.625rem+env(safe-area-inset-bottom))] pt-2.5
+                  shadow-[0_-8px_28px_rgba(14,22,17,0.10)]
+                  transition-transform duration-[380ms] ease-brand-out md:hidden
+                  ${up ? "translate-y-0" : "translate-y-[110%]"}`}
+    >
+      <a className="btn flex-1 justify-center px-3 py-3.5" href={`tel:${client.phoneHref}`}>
+        {client.copy.stickyCallLabel}
       </a>
-      <a
-        href="#contact"
-        className="flex items-center justify-center gap-2 bg-surface py-3.5 font-semibold text-ink active:bg-surface-alt"
-      >
-        {client.copy.stickyCtaLabel}
+      <a className="btn btn-ghost flex-1 justify-center px-3 py-3.5" href="#quote">
+        {client.copy.stickyQuoteLabel}
       </a>
     </div>
   );
