@@ -68,7 +68,8 @@ export default function TermsPage() {
       </p>
       <h2>Contact</h2>
       <p>
-        Questions about these Terms: {client.email} or {client.phone}.
+        Questions about these Terms:{client.email ? ` ${client.email} or` : ""}{" "}
+        {client.phone}.
       </p>
     </LegalPage>
   );

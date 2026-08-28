@@ -1,6 +1,10 @@
 "use client";
 
-/** Hairline reading-progress bar. Ink, not accent — quiet by design. */
+/**
+ * Reading-progress hairline, pinned to the nav's bottom edge so it
+ * reads as the bar filling rather than a stripe floating over the page.
+ * Badge green — graphic only, which is exactly what this is.
+ */
 import { motion, useScroll, useSpring, useReducedMotion } from "framer-motion";
 
 export function ScrollProgress() {
@@ -15,7 +19,7 @@ export function ScrollProgress() {
   return (
     <motion.div
       aria-hidden
-      className="fixed inset-x-0 top-0 z-50 h-px origin-left bg-ink"
+      className="absolute inset-x-0 -bottom-px z-[1] h-0.5 origin-left bg-leaf"
       style={{ scaleX }}
     />
   );
